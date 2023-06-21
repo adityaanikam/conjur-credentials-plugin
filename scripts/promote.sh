@@ -5,12 +5,16 @@ set -euo pipefail
 . "$(git rev-parse --show-toplevel)/scripts/utils.sh"
 
 ensure_mvn
+set -x
 
-echo "==== Preparing Release ===="
-mvn --batch-mode release:prepare
+mvn --batch-mode deploy
 
-echo "==== Release Properties: ===="
-cat release.properties
+# echo "==== Preparing Release ===="
+# mvn --batch-mode release:prepare
 
-echo "==== Executing Release ===="
-mvn --batch-mode release:perform
+# echo "==== Release Properties: ===="
+# cat release.properties
+
+# echo "==== Executing Release ===="
+# mvn --batch-mode release:perform
+
