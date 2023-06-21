@@ -15,11 +15,24 @@ ensure_tool(){
 }
 
 ensure_mvn(){
-    command -v mvn && return
+    # skip if already configured
+    command -v mvn && grep -q conjur_jenkins ~/.m2/settings.xml 2>/dev/null && return
+
+    # Install mvn cli
     mvn_version="${1:-3.9.2}"
     curl "https://dlcdn.apache.org/maven/maven-3/${mvn_version}/binaries/apache-maven-${mvn_version}-bin.tar.gz" > maven.tgz
     tar xzf maven.tgz
     export PATH="${PATH}:${PWD}/apache-maven-${mvn_version}/bin"
+
+    # Get mvn creds from conjurops
+    mkdir -p ~/.m2/
+    if [[ -f ~/.m2/settings.xml ]]; then
+        echo "Warning ~/.m2/settings.xml already exists and will be overwritten. Current contents:"
+        cat ~/.m2/settings.xml
+        echo "----"
+    fi
+    /usr/local/lib/summon/summon-conjur ci/upstream-jenkins/maven-config |base64 -d > ~/.m2/settings.xml
+
 }
 
 ensure_xmlstarlet(){
