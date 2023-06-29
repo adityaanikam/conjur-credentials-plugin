@@ -2,9 +2,7 @@
 
 # conjur-credentials-plugin
 
-**This repo is no longer maintained. See https://github.com/jenkinsci/conjur-credentials-plugin for the latest code!**
-
-This Conjur plugin securely provides credentials that are stored in Conjur to Jenkins jobs.  
+This Conjur plugin securely provides credentials that are stored in Conjur to Jenkins jobs.
 
 ## Reference
 
@@ -13,7 +11,7 @@ This Conjur plugin securely provides credentials that are stored in Conjur to Je
 
 ## Usage
 
-Install the plugin using Jenkins "Plugin Manager" with an administrator account. After installing the plugin and restarting Jenkins, you are ready to start. 
+Install the plugin using Jenkins "Plugin Manager" with an administrator account. After installing the plugin and restarting Jenkins, you are ready to start.
 
 ### Global Configuration
 
@@ -27,7 +25,7 @@ A global configuration allows any job to use the configuration, unless a folder-
 
 Please read the [documentation for JWT Authenticator ](https://docs.cyberark.com/Product-Doc/OnlineHelp/AAM-DAP/Latest/en/Content/Operations/Services/cjr-authn-jwt.htm?tocpath=Integrations%7CJWT%20Authenticator%7C_____0)
 
-You can enable the use of JWT Authentication by checking "Enable JWT Key Set Endpoint", this will allow the plugin provide an endpoint for the JWKS_URI (described in the documentation link).  
+You can enable the use of JWT Authentication by checking "Enable JWT Key Set Endpoint", this will allow the plugin provide an endpoint for the JWKS_URI (described in the documentation link).
 The JWT Key Set Endpoint will be: BASEURLFORJENKINS/jwtauth/conjur-jwk-set
 
 Once enabled, any job that runs from Jenkins where a Conjur Login Credential has not been provided, the conjur-credentials plugin will automatically generate a JWT Token based on the context of the execution which can be served as authentication mechanism. The token signature will be validated with the JWT Key set exposed by the endpoint.
@@ -38,20 +36,20 @@ You need to define the following as well:
 * JWT Audience: the aud value in the JWT Token
 * Signing Key Lifetime in Minutes: For how long will the signing key for JWT Tokens will be valid, and exposed via the JWT key set endpoint
 * JWT Token Duration In Seconds: This will the lifetime of any JWT token generated via the conjur-credentials plugin
-* Identity Field Name: Additional field added to the claims of the JWT token, which could be a combination of other fields. This value could potentially be used as the identity of the execution. 
-* Identity Format Fields: Comma separated list of JWT Claim fields to be concatenated for the value of the Identity Field. 
-* Identity Fields Separator: The character(s) to be used in the concatenation of the format fields. 
-* Enable Context Aware Credential Stores: Please see following section. 
+* Identity Field Name: Additional field added to the claims of the JWT token, which could be a combination of other fields. This value could potentially be used as the identity of the execution.
+* Identity Format Fields: Comma separated list of JWT Claim fields to be concatenated for the value of the Identity Field.
+* Identity Fields Separator: The character(s) to be used in the concatenation of the format fields.
+* Enable Context Aware Credential Stores: Please see following section.
 
-**Note:** CyberArk recommends keeping the token and key TTL values the minimum possible based on context. 
+**Note:** CyberArk recommends keeping the token and key TTL values the minimum possible based on context.
 
 ### How to obtain JWT Token Claims
 
-In the configuration page of the item (project, job, foler, etc) you will find the "JWT Token Claims" button, clicking on it will show the JWT Token claims for the item based on the context where it is. 
+In the configuration page of the item (project, job, foler, etc) you will find the "JWT Token Claims" button, clicking on it will show the JWT Token claims for the item based on the context where it is.
 
 ![JWT Claims](docs/images/JWT-Claims.png)
 
-This information can be used by the Conjur Security Administrator to grant access to credentials. 
+This information can be used by the Conjur Security Administrator to grant access to credentials.
 
 
 ### Global Configuration: Context Aware Credential Stores  (Conjur Credentials Provider)
@@ -62,13 +60,13 @@ When Context Aware Credential Stores is enabled, the conjur-credentials plugin w
 
 #### Annotations for secrets/variables
 
-You can add annotations in your Conjur policy to expand the credentials available through the Context Aware Credential Store. 
+You can add annotations in your Conjur policy to expand the credentials available through the Context Aware Credential Store.
 
-For any secret variable in Conjur available to the context a "Conjur Secret Credential" credential will be exposed. 
+For any secret variable in Conjur available to the context a "Conjur Secret Credential" credential will be exposed.
 
-With the following annotations: 
+With the following annotations:
 * jenkins_credential_type: if set to `usernamecredential` an additional credential (of type "Conjur Secret Username Credential") with a prefix of "username-" will be added. Otherwise, if set to "usernamesshkeycredential" the additional credential of type "Conjur Secret Username SSHKey Credential" with a prefix of "usernamesshkey-" will be exposed.
-* jenkins_credential_username: To define the username to be used when either usernamecredential" or "usernamesshkeycredential" is set for jenkins_credential_type. 
+* jenkins_credential_username: To define the username to be used when either usernamecredential" or "usernamesshkeycredential" is set for jenkins_credential_type.
 
 Here an example:
 
