@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.0.17] - 2023-08-23
+- Fixed for Null-Pointer exception while retrieving Secrets
+- Fixed pipeline build Junit Test cases rewritten with Mockito and removed power-mockito dependencies compatibility with JDK 11 &17 version.
+- Fixed Jenkins-Bitbucket Instance 
 
 ## [1.0.16] - 2023-06-28
 - End to End test of internal automated build process

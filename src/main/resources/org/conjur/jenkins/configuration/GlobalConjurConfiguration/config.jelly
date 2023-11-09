@@ -10,7 +10,7 @@
         <f:property field="conjurConfiguration" header="${%Conjur Configuration}"/>
     </f:section>
     <f:section title="${%Conjur JWT Authentication}">
-        <f:entry title="${%Enable JWT Key Set endpoint?}" description="If checked, the endpoint for jwtauth/conjur-jwk-set will return the JWT KeySet">
+        <f:entry title="${%Enable JWT Key Set endpoint?}" description="The JWT Key Set Endpoint will be:BASEURLFORJENKINS/jwtauth/conjur-jwk-set">
             <f:checkbox name="enableJWKS" field="enableJWKS" default="false" checked="${enableJWKS}"/>
         </f:entry>
         <f:entry title="${%Auth WebService ID}">
