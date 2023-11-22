@@ -228,18 +228,18 @@ public class JwtToken {
 		long currentTime = System.currentTimeMillis() / 1000;
 		long max_key_time_in_sec = GlobalConjurConfiguration.get().getKeyLifetimeInMinutes() * 60;
 		try {
-			// access via Iterator
-			Iterator<JwtRsaDigitalSignatureKey> iterator = keysQueue.iterator();
-			while (iterator.hasNext()) {
-				JwtRsaDigitalSignatureKey key = iterator.next();
-				if (currentTime - key.getCreationTime() < max_key_time_in_sec) {
-					if (key.getCreationTime() + max_key_time_in_sec > jwtToken.claim.getLong("exp")) {
+			// access via Queue for-each list
+			for (JwtRsaDigitalSignatureKey key : keysQueue) {
+				if (key != null) {
+					if (currentTime - key.getCreationTime() < max_key_time_in_sec) {
+						if (key.getCreationTime() + max_key_time_in_sec > jwtToken.claim.getLong("exp")) {
 						result = key;
 						break;
 					}
 				} else {
-					iterator.remove();
-				}
+					keysQueue.remove();
+				  }
+			   }
 			}
 
 			if (result == null) {
@@ -250,8 +250,7 @@ public class JwtToken {
 			LOGGER.log(Level.FINE, "End of getCurrentSigningKey())");
 
 		} catch (Exception ex) {
-			LOGGER.log(Level.SEVERE,
-					"Error getCurrentSigningKey() Creating JWT token check Global Conjur Configuration XML file ==>  " + ex.getMessage());
+			ex.printStackTrace();
 
 		}
 
@@ -272,11 +271,12 @@ public class JwtToken {
 		JSONArray keys = new JSONArray();
 
 		long currentTime = System.currentTimeMillis() / 1000;
+		try {
 		long max_key_time_in_sec = GlobalConjurConfiguration.get().getKeyLifetimeInMinutes() * 60;
 
-		// access via Iterator
-		Iterator<JwtRsaDigitalSignatureKey> iterator = keysQueue.iterator();
-		while (iterator.hasNext()) {
+		// access via Queue for-each list
+		for (JwtRsaDigitalSignatureKey key : keysQueue) {
+			if (key != null) {
 			JwtRsaDigitalSignatureKey key = iterator.next();
 			if (currentTime - key.getCreationTime() < max_key_time_in_sec) {
 				JSONObject jwk = new JSONObject();
@@ -292,12 +292,16 @@ public class JwtToken {
 				keys.put(jwk);
 
 			} else {
-				iterator.remove();
-			}
+				keysQueue.remove();
+			  }
+		   }
 		}
 
 		jwks.put("keys", keys);
 		LOGGER.log(Level.FINE, "End of getJwkset() ");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		return jwks;
 	}
 
