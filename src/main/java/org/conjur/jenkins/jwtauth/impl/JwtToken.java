@@ -277,7 +277,6 @@ public class JwtToken {
 		// access via Queue for-each list
 		for (JwtRsaDigitalSignatureKey key : keysQueue) {
 			if (key != null) {
-			JwtRsaDigitalSignatureKey key = iterator.next();
 			if (currentTime - key.getCreationTime() < max_key_time_in_sec) {
 				JSONObject jwk = new JSONObject();
 				jwk.put("kty", "RSA");
