@@ -64,8 +64,8 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
 	}
 
 
-	/** @return the singleton instance */
-	@Nonnull
+	/** @return the singleton instance , comment nonnull due to trace exception*/
+	//@Nonnull
 	public static GlobalConjurConfiguration get() {
 
 		GlobalConjurConfiguration result = null;
