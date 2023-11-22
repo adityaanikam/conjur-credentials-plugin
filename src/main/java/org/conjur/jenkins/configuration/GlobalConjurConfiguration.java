@@ -69,11 +69,14 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
 	public static GlobalConjurConfiguration get() {
 
 		GlobalConjurConfiguration result = null;
+		try {
+		  result = GlobalConfiguration.all().get(GlobalConjurConfiguration.class);
 
-		result = GlobalConfiguration.all().get(GlobalConjurConfiguration.class);
-
-		if (result == null) {
+		  if (result == null) {
 			throw new IllegalStateException();
+		  }
+		} catch (Exception ex) {
+			ex.printStackTrace();
 		}
 		return result;
 	}
