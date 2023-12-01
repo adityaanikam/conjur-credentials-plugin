@@ -227,33 +227,36 @@ public class JwtToken {
 		JwtRsaDigitalSignatureKey result = null;
 		long currentTime = System.currentTimeMillis() / 1000;
 		long max_key_time_in_sec = GlobalConjurConfiguration.get().getKeyLifetimeInMinutes() * 60;
-		try {
-			// access via Queue for-each list
-			for (JwtRsaDigitalSignatureKey key : keysQueue) {
-				if (key != null) {
-					if (currentTime - key.getCreationTime() < max_key_time_in_sec) {
-						if (key.getCreationTime() + max_key_time_in_sec > jwtToken.claim.getLong("exp")) {
+
+		LOGGER.log(Level.FINE, "getCurrentSigningKey() -->currentTime: " + currentTime);
+		LOGGER.log(Level.FINE, "getCurrentSigningKey() -->max_key_time_in_sec: " + max_key_time_in_sec);
+
+		// access via Queue Iterator list
+		Iterator<JwtRsaDigitalSignatureKey> iterator = keysQueue.iterator();
+
+		while (iterator.hasNext()) {
+			JwtRsaDigitalSignatureKey key = iterator.next();
+			if (key != null) {
+				if (currentTime - key.getCreationTime() < max_key_time_in_sec) {
+
+					if (key.getCreationTime() + max_key_time_in_sec > jwtToken.claim.getLong("exp")) {
 						result = key;
 						break;
 					}
 				} else {
-					keysQueue.remove();
-				  }
-			   }
+					result = null;
+					iterator.remove();
+				}
 			}
-
-			if (result == null) {
-				String id = ID_FORMAT.format(Instant.now());
-				result = new JwtRsaDigitalSignatureKey(id);
-				keysQueue.add(result);
-			}
-			LOGGER.log(Level.FINE, "End of getCurrentSigningKey())");
-
-		} catch (Exception ex) {
-			ex.printStackTrace();
-
+		}
+		if (result == null) {
+			String id = ID_FORMAT.format(Instant.now());
+			result = new JwtRsaDigitalSignatureKey(id);
+			keysQueue.add(result);
 		}
 
+		LOGGER.log(Level.FINE, "End of getCurrentSigningKey()) -->result : " + result);
+		LOGGER.log(Level.FINE, "End of getCurrentSigningKey())");
 		return result;
 	}
 
