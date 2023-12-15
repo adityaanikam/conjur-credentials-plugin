@@ -8,11 +8,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import com.cloudbees.plugins.credentials.CredentialsScope;
-import com.cloudbees.plugins.credentials.common.StandardCredentials;
-
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 import org.conjur.jenkins.api.ConjurAPI;
 import org.conjur.jenkins.api.ConjurAPIUtils;
 import org.conjur.jenkins.configuration.ConjurConfiguration;
@@ -25,12 +20,19 @@ import org.conjur.jenkins.conjursecrets.ConjurSecretUsernameSSHKeyCredentialsImp
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import com.cloudbees.plugins.credentials.CredentialsScope;
+import com.cloudbees.plugins.credentials.common.StandardCredentials;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.model.ModelObject;
-// import net.sf.json.JSONObject;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+/**
+ * Retrieves the Credentail Supplier for context
+ *
+ */
 public class CredentialsSupplier implements Supplier<Collection<StandardCredentials>> {
 
     private static final Logger LOGGER = Logger.getLogger(CredentialsSupplier.class.getName());
@@ -45,6 +47,12 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
     public static Supplier<Collection<StandardCredentials>> standard(ModelObject context) {
         return new CredentialsSupplier(context);
     }
+
+	/**
+	 * Method to retrieve the resources from Conjur based on the ConjurAuthnInfo
+	 * 
+	 * @return collection of StandardCredential
+	 */
 
 	@SuppressFBWarnings
     @Override
@@ -62,11 +70,7 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
 			OkHttpClient client = ConjurAPIUtils.getHttpClient(conjurConfiguration);
 			// Authenticate to Conjur
 			String authToken = ConjurAPI.getAuthorizationToken(client, conjurConfiguration, getContext());
-			// // Retrieve secret from Conjur
-			// String secretString = ConjurAPI.getSecret(client, conjurConfiguration, authToken, this.variablePath);
-			// result = secretString;
-            // LOGGER.log(Level.FINEST, "authToken=" + authToken);
-
+			
             ConjurAPI.ConjurAuthnInfo conjurAuthn = ConjurAPI.getConjurAuthnInfo(conjurConfiguration, null, getContext());
 
             LOGGER.log(Level.FINE, "Fetching variables from Conjur");
@@ -138,8 +142,7 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
             }
 
 		} catch (IOException e) {
-			LOGGER.log(Level.FINE, "EXCEPTION: CredentialSuplier => " + e.getMessage());
-			// throw new InvalidConjurSecretException(e.getMessage(), e);
+			LOGGER.log(Level.SEVERE, "EXCEPTION: CredentialSuplier => " + e.getMessage());
 		}
 
         return allCredentials.stream()

@@ -7,23 +7,27 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import com.cloudbees.plugins.credentials.Credentials;
-import com.cloudbees.plugins.credentials.CredentialsProvider;
-import com.cloudbees.plugins.credentials.CredentialsStore;
-import com.cloudbees.plugins.credentials.CredentialsStoreAction;
-import com.cloudbees.plugins.credentials.domains.Domain;
-
 import org.acegisecurity.Authentication;
 import org.jenkins.ui.icon.Icon;
 import org.jenkins.ui.icon.IconSet;
 import org.jenkins.ui.icon.IconType;
 import org.kohsuke.stapler.export.ExportedBean;
 
+import com.cloudbees.plugins.credentials.Credentials;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.CredentialsStore;
+import com.cloudbees.plugins.credentials.CredentialsStoreAction;
+import com.cloudbees.plugins.credentials.domains.Domain;
+
 import hudson.model.ModelObject;
 import hudson.security.ACL;
 import hudson.security.Permission;
 import jenkins.model.Jenkins;
 
+/**
+ * Retrieve the Credential Store details for Conjur Configuration
+ *
+ */
 public class ConjurCredentialStore extends CredentialsStore {
 
     private static ConcurrentHashMap<String, ConjurCredentialStore> allStores = new ConcurrentHashMap<String, ConjurCredentialStore>();
@@ -42,55 +46,61 @@ public class ConjurCredentialStore extends CredentialsStore {
         return allStores;
     }
 
-    @Nonnull
-    @Override
-    public ModelObject getContext() {
-        return this.context;
-    }
+	/**
+	 * @retrun the Context as ModelObject
+	 */
 
-    @Override
-    public boolean hasPermission(@Nonnull Authentication authentication,
-                                 @Nonnull Permission permission) {
-        return CredentialsProvider.VIEW.equals(permission)
-                && Jenkins.get().getACL().hasPermission(authentication, permission);
-    }
+	@Nonnull
+	@Override
+	public ModelObject getContext() {
+		return this.context;
+	}
 
-    @Nonnull
-    @Override
-    public List<Credentials> getCredentials(@Nonnull Domain domain) {
-        // Only the global domain is supported
-        if (Domain.global().equals(domain)
-                && Jenkins.get().hasPermission(CredentialsProvider.VIEW)) {
-            return provider.getCredentials(Credentials.class, Jenkins.get(), ACL.SYSTEM);
-        } else {
-            return Collections.emptyList();
-        }
-    }
+	/**
+	 * @return boolean if provider has permission to view credentials
+	 */
+	@SuppressWarnings("deprecation")
+	@Override
+	public boolean hasPermission(@SuppressWarnings("deprecation") @Nonnull Authentication authentication, @Nonnull Permission permission) {
+		return CredentialsProvider.VIEW.equals(permission)
+				&& Jenkins.get().getACL().hasPermission(authentication, permission);
+	}
 
-    @Override
-    public boolean addCredentials(@Nonnull Domain domain, @Nonnull Credentials credentials) {
-        throw new UnsupportedOperationException(
-                "Jenkins may not add credentials to Conjur");
-    }
+	/**
+	 * @retrun List of Credentials to view based on permission
+	 */
+	@Nonnull
+	@Override
+	public List<Credentials> getCredentials(@Nonnull Domain domain) {
+		// Only the global domain is supported
+		if (Domain.global().equals(domain) && Jenkins.get().hasPermission(CredentialsProvider.VIEW)) {
+			return provider.getCredentials(Credentials.class, Jenkins.get(), ACL.SYSTEM);
+		} else {
+			return Collections.emptyList();
+		}
+	}
 
-    @Override
-    public boolean removeCredentials(@Nonnull Domain domain, @Nonnull Credentials credentials) {
-        throw new UnsupportedOperationException(
-                "Jenkins may not remove credentials from Conjur");
-    }
+	@Override
+	public boolean addCredentials(@Nonnull Domain domain, @Nonnull Credentials credentials) {
+		throw new UnsupportedOperationException("Jenkins may not add credentials to Conjur");
+	}
 
-    @Override
-    public boolean updateCredentials(@Nonnull Domain domain, @Nonnull Credentials current,
-                                     @Nonnull Credentials replacement) {
-        throw new UnsupportedOperationException(
-                "Jenkins may not update credentials in Conjur");
-    }
+	@Override
+	public boolean removeCredentials(@Nonnull Domain domain, @Nonnull Credentials credentials) {
+		throw new UnsupportedOperationException("Jenkins may not remove credentials from Conjur");
+	}
 
-    @Nullable
-    @Override
-    public CredentialsStoreAction getStoreAction() {
-        return action;
-    }
+	@Override
+	public boolean updateCredentials(@Nonnull Domain domain, @Nonnull Credentials current,
+			@Nonnull Credentials replacement) {
+		throw new UnsupportedOperationException("Jenkins may not update credentials in Conjur");
+	}
+
+	@Nullable
+	@Override
+	public CredentialsStoreAction getStoreAction() {
+		return action;
+	}
 
     /**
      * Expose the store.
