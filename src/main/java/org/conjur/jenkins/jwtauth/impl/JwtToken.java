@@ -228,8 +228,7 @@ public class JwtToken {
 		long currentTime = System.currentTimeMillis() / 1000;
 		long max_key_time_in_sec = GlobalConjurConfiguration.get().getKeyLifetimeInMinutes() * 60;
 
-		LOGGER.log(Level.FINE, "getCurrentSigningKey() -->currentTime: " + currentTime);
-		LOGGER.log(Level.FINE, "getCurrentSigningKey() -->max_key_time_in_sec: " + max_key_time_in_sec);
+		LOGGER.log(Level.FINE, "Start of getCurrentSigningKey() -->keysQueue.size() : " + keysQueue.size());
 
 		// access via Queue Iterator list
 		Iterator<JwtRsaDigitalSignatureKey> iterator = keysQueue.iterator();
@@ -244,9 +243,14 @@ public class JwtToken {
 						break;
 					}
 				} else {
+					LOGGER.log(Level.FINE, "getCurrentSigningKey() expired key lifetime ");
 					result = null;
-					iterator.remove();
+					iterator.remove();// Safe removal using iterator
 				}
+			} else {
+				LOGGER.log(Level.FINE, "getCurrentSigningKey() Empty key or key without public key ");
+				result = null;
+				iterator.remove(); // Remove invalid key or key without public key
 			}
 		}
 		if (result == null) {
@@ -255,7 +259,7 @@ public class JwtToken {
 			keysQueue.add(result);
 		}
 
-		LOGGER.log(Level.FINE, "End of getCurrentSigningKey()) -->result : " + result);
+		LOGGER.log(Level.FINE, "End of getCurrentSigningKey()) -->keysQueue.size() : " + keysQueue.size());
 		LOGGER.log(Level.FINE, "End of getCurrentSigningKey())");
 		return result;
 	}
@@ -275,32 +279,40 @@ public class JwtToken {
 
 		long currentTime = System.currentTimeMillis() / 1000;
 		try {
-		long max_key_time_in_sec = GlobalConjurConfiguration.get().getKeyLifetimeInMinutes() * 60;
+			long max_key_time_in_sec = GlobalConjurConfiguration.get().getKeyLifetimeInMinutes() * 60;
 
-		// access via Queue for-each list
-		for (JwtRsaDigitalSignatureKey key : keysQueue) {
-			if (key != null) {
-			if (currentTime - key.getCreationTime() < max_key_time_in_sec) {
-				JSONObject jwk = new JSONObject();
-				jwk.put("kty", "RSA");
-				jwk.put("alg", AlgorithmIdentifiers.RSA_USING_SHA256);
-				jwk.put("kid", key.getId());
-				jwk.put("use", "sig");
-				jwk.put("key_ops", Collections.singleton("verify"));
-				jwk.put("n", Base64.getUrlEncoder().withoutPadding()
-						.encodeToString(key.getPublicKey().getModulus().toByteArray()));
-				jwk.put("e", Base64.getUrlEncoder().withoutPadding()
-						.encodeToString(key.getPublicKey().getPublicExponent().toByteArray()));
-				keys.put(jwk);
+			LOGGER.log(Level.FINE, "getJwkset() keysQueue.size(): " + keysQueue.size());
 
-			} else {
-				keysQueue.remove();
-			  }
-		   }
-		}
+			// access via Queue Iterator
+			Iterator<JwtRsaDigitalSignatureKey> iterator = keysQueue.iterator();
+			while (iterator.hasNext()) {
+				JwtRsaDigitalSignatureKey key = iterator.next();
+				if (key != null && key.getPublicKey() != null) {
+					if (currentTime - key.getCreationTime() < max_key_time_in_sec) {
+						JSONObject jwk = new JSONObject();
+						jwk.put("kty", "RSA");
+						jwk.put("alg", AlgorithmIdentifiers.RSA_USING_SHA256);
+						jwk.put("kid", key.getId());
+						jwk.put("use", "sig");
+						jwk.put("key_ops", Collections.singleton("verify"));
+						jwk.put("n", Base64.getUrlEncoder().withoutPadding()
+								.encodeToString(key.getPublicKey().getModulus().toByteArray()));
+						jwk.put("e", Base64.getUrlEncoder().withoutPadding()
+								.encodeToString(key.getPublicKey().getPublicExponent().toByteArray()));
+						keys.put(jwk);
 
-		jwks.put("keys", keys);
-		LOGGER.log(Level.FINE, "End of getJwkset() ");
+					} else {
+						LOGGER.log(Level.FINE, "getJwkset() after expire key lifetime ");
+						iterator.remove();// Safe removal using iterator
+					}
+				} else {
+					LOGGER.log(Level.FINE, "getJwkset() Empty key or key without public key ");
+					iterator.remove(); // Remove invalid key or key without public key
+				}
+			}
+
+			jwks.put("keys", keys);
+			LOGGER.log(Level.FINE, "End of getJwkset() ");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -29,6 +29,7 @@ public class JwtAuthenticationServiceImpl extends JwtAuthenticationService {
 		LOGGER.log(Level.FINE, "Getting JwkSet");
 	try {
         GlobalConjurConfiguration result = GlobalConfiguration.all().get(GlobalConjurConfiguration.class);
+        LOGGER.log(Level.FINE, "Getting JwkSet() -->GlobalConjurConfiguration result: " + result);
         if (result == null || !result.getEnableJWKS()) {
             		throw new HttpRequestMethodNotSupportedException("conjur-jwk-set");
         	}
