@@ -3,6 +3,9 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.0.18] - 2024-02-02
+- Update to support JWKS public key re-generation.
+
 ## [1.0.17] - 2023-08-23
 - Fixed for Null-Pointer exception while retrieving Secrets
 - Fixed pipeline build Junit Test cases rewritten with Mockito and removed power-mockito dependencies compatibility with JDK 11 &17 version.

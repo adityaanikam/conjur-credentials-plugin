@@ -4,8 +4,6 @@ import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.annotation.Nonnull;
-
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
@@ -63,18 +61,18 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
 		}
 	}
 
-
-	/** @return the singleton instance , comment nonnull due to trace exception*/
-	//@Nonnull
+	/** @return the singleton instance , comment non-null due to trace exception */
+	// @Nonnull
 	public static GlobalConjurConfiguration get() {
-
 		GlobalConjurConfiguration result = null;
 		try {
-		  result = GlobalConfiguration.all().get(GlobalConjurConfiguration.class);
+			result = GlobalConfiguration.all().get(GlobalConjurConfiguration.class);
 
-		  if (result == null) {
-			throw new IllegalStateException();
-		  }
+			LOGGER.log(Level.FINE, "Inside GlobalConjurConfiguration get() result:  " + result);
+
+			if (result == null) {
+				throw new IllegalStateException();
+			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
