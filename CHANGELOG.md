@@ -3,6 +3,9 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.0.19] - 2024-02-13
+- Fix the Class Casting Exception when creating a Jenkins CloudBees AWS EC2 Instance.
+
 ## [1.0.18] - 2024-02-02
 - Update to support JWKS public key re-generation.
 
