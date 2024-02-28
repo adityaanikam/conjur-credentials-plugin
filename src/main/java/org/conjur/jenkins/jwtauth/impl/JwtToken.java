@@ -200,13 +200,21 @@ public class JwtToken {
 			StringBuffer identityValue = new StringBuffer();
 			for (String identityField : identityFields) {
 				if (jwtToken.claim.has(identityField)) {
+					LOGGER.log(Level.FINE, "getUnsignedToken() *** Identity Field in CLAIM :" + identityField);
 					String fieldValue = jwtToken.claim.getString(identityField);
-					if (identityValue.length() != 0)
+					LOGGER.log(Level.FINE, "getUnsignedToken() *** Inside IF condition fieldValue :" + fieldValue);
+					if (identityValue.length() > 1) {
 						identityValue.append(fieldSeparator);
+						LOGGER.log(Level.FINE, "getUnsignedToken() *** fieldseparator :" + identityValue.toString());
+					}
 					identityValue.append(fieldValue);
+					LOGGER.log(Level.FINE, "getUnsignedToken() *** Adding fieldValue :" + identityValue.toString());
+				} else {
+					identityValue.append(fieldSeparator);
 				}
 			}
 			if (identityValue.length() > 0)
+
 				jwtToken.claim.put(globalConfig.getidentityFieldName(), identityValue);
 
 		}
