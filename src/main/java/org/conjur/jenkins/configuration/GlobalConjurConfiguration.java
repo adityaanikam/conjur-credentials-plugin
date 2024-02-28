@@ -1,9 +1,14 @@
 package org.conjur.jenkins.configuration;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
@@ -59,6 +64,53 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
 			LOGGER.log(Level.WARNING, "Key lifetime and token duration must be numbers");
 			return FormValidation.error("Key lifetime and token duration must be numbers");
 		}
+	}
+
+	public FormValidation doCheckAuthWebServiceId(@AncestorInPath AbstractItem anc,
+			@QueryParameter("authWebServiceId") String authWebServiceId) {
+		LOGGER.log(Level.FINE, "Inside of doCheckAuthWebServiceId()");
+		if (StringUtils.isEmpty(authWebServiceId) || StringUtils.isBlank(authWebServiceId)) {
+			LOGGER.log(Level.FINE, "Auth WebService Id should not be empty");
+			return FormValidation.error("Auth WebService Id should not be empty");
+		} else {
+			return FormValidation.ok();
+		}
+	}
+
+	public FormValidation doCheckJwtAudience(@AncestorInPath AbstractItem anc,
+			@QueryParameter("jwtAudience") String jwtAudience) {
+		LOGGER.log(Level.FINE, "Inside of doCheckJwtAudience()");
+		if (StringUtils.isEmpty(jwtAudience) || StringUtils.isBlank(jwtAudience)) {
+			LOGGER.log(Level.FINE, "JWT Audience field should not be empty");
+			return FormValidation.error("JWT Audience field should not be empty");
+		} else {
+			return FormValidation.ok();
+		}
+	}
+
+	public FormValidation doCheckIdentityFormatFieldsFromToken(@AncestorInPath AbstractItem anc,
+			@QueryParameter("identityFormatFieldsFromToken") String identityFormatFieldsFromToken) {
+		LOGGER.log(Level.FINE, "Inside of doCheckIdentityFormatField()");
+		List<String> identityFields = Arrays.asList(identityFormatFieldsFromToken.split(","));
+
+		Set<String> identityTokenSet = new HashSet<>(Arrays.asList("aud", "jenkins_parent_full_name", "jenkins_name"));
+
+		if (StringUtils.isEmpty(identityFormatFieldsFromToken) || StringUtils.isBlank(identityFormatFieldsFromToken)) {
+			LOGGER.log(Level.FINE, "IdentityFormatFieldsFromToken should not be empty");
+			return FormValidation.error("IdentityFormatFieldsFromToken field should not be empty");
+		} else if (identityFields.size() > 3) {
+			LOGGER.log(Level.FINE, "IdentityFormatFieldsFromToken field should contain only 3 tokens");
+			return FormValidation.error("IdentityFormatFieldsFromToken field should contain only 3 tokens");
+		} else if (!identityFields.stream().allMatch(identityTokenSet::contains)) {
+			LOGGER.log(Level.FINE,
+					"IdentityFormatFieldsFromToken field token should be aud/jenkins_parent_full_name/jenkins_name");
+			return FormValidation.error(
+					"IdentityFormatFieldsFromToken field token should be aud/jenkins_parent_full_name/jenkins_name");
+		}else {
+
+			return FormValidation.ok();
+		}
+
 	}
 
 	/** @return the singleton instance , comment non-null due to trace exception */
