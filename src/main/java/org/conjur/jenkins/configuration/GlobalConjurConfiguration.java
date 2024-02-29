@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.AncestorInPath;
@@ -41,7 +42,7 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
 
 	/**
 	 * check the Token Duration for validity
-	 * 
+	 *
 	 * @param Jenkins AbstractItem anc
 	 * @param Token   duration in sectonds
 	 * @param Token   keyLifetimeInMinutes
@@ -66,6 +67,13 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
 		}
 	}
 
+	/**
+	 * check the Auth WebService Id
+	 *
+	 * @param Jenkins AbstractItem anc
+	 * @param Token   authWebServiceId
+	 * @return
+	 */
 	public FormValidation doCheckAuthWebServiceId(@AncestorInPath AbstractItem anc,
 			@QueryParameter("authWebServiceId") String authWebServiceId) {
 		LOGGER.log(Level.FINE, "Inside of doCheckAuthWebServiceId()");
@@ -77,6 +85,13 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
 		}
 	}
 
+	/**
+	 * check the JWT Audience
+	 *
+	 * @param Jenkins AbstractItem anc
+	 * @param Token   jwtAudience
+	 * @return
+	 */
 	public FormValidation doCheckJwtAudience(@AncestorInPath AbstractItem anc,
 			@QueryParameter("jwtAudience") String jwtAudience) {
 		LOGGER.log(Level.FINE, "Inside of doCheckJwtAudience()");
@@ -88,32 +103,86 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
 		}
 	}
 
+	/**
+	 * check the Identity Format Fields From Token
+	 *
+	 * @param Jenkins AbstractItem anc
+	 * @param Token   identityFormatFieldsFromToken
+	 * @return
+	 */
 	public FormValidation doCheckIdentityFormatFieldsFromToken(@AncestorInPath AbstractItem anc,
 			@QueryParameter("identityFormatFieldsFromToken") String identityFormatFieldsFromToken) {
 		LOGGER.log(Level.FINE, "Inside of doCheckIdentityFormatField()");
 		List<String> identityFields = Arrays.asList(identityFormatFieldsFromToken.split(","));
-
-		Set<String> identityTokenSet = new HashSet<>(Arrays.asList("aud", "jenkins_parent_full_name", "jenkins_name"));
-
+		// Check for duplicates in identityFields
+		Set<String> uniqueIdentityFields = new HashSet<>(identityFields);
 		if (StringUtils.isEmpty(identityFormatFieldsFromToken) || StringUtils.isBlank(identityFormatFieldsFromToken)) {
 			LOGGER.log(Level.FINE, "IdentityFormatFieldsFromToken should not be empty");
 			return FormValidation.error("IdentityFormatFieldsFromToken field should not be empty");
-		} else if (identityFields.size() > 3) {
-			LOGGER.log(Level.FINE, "IdentityFormatFieldsFromToken field should contain only 3 tokens");
-			return FormValidation.error("IdentityFormatFieldsFromToken field should contain only 3 tokens");
-		} else if (!identityFields.stream().allMatch(identityTokenSet::contains)) {
-			LOGGER.log(Level.FINE,
-					"IdentityFormatFieldsFromToken field token should be aud/jenkins_parent_full_name/jenkins_name");
-			return FormValidation.error(
-					"IdentityFormatFieldsFromToken field token should be aud/jenkins_parent_full_name/jenkins_name");
-		}else {
+		}
+		if (uniqueIdentityFields.size() < identityFields.size()) {
+			LOGGER.log(Level.FINE, "Duplicate tokens found in IdentityFormatFieldsFromToken");
+			return FormValidation.error("Duplicate tokens found in IdentityFormatFieldsFromToken");
+		}
+		return validateIdentityFormatFields(identityFields);
+	}
 
+	/**
+	 * check the Identity Format Fields Seperator
+	 *
+	 * @param Jenkins AbstractItem anc
+	 * @param JWT     IdentityFieldsSeparator
+	 * @return
+	 */
+	public FormValidation doCheckIdentityFieldsSeparator(@AncestorInPath AbstractItem anc,
+			@QueryParameter("identityFieldsSeparator") String identityFieldsSeparators) {
+		LOGGER.log(Level.FINE, "Inside of doCheckIdentityFieldsSeparator()");
+
+		if (StringUtils.isEmpty(identityFieldsSeparators) || StringUtils.isBlank(identityFieldsSeparators)) {
+			LOGGER.log(Level.FINE, "Identity Fields Separator should not be empty");
+			return FormValidation.error("Identity Fields Separator should not be empty");
+
+		} else if (!identityFieldsSeparators.equals(identityFieldsSeparator)) {
+			LOGGER.log(Level.FINE, "Identity Fields Separator should contain only single - ");
+			return FormValidation.error("Identity Fields Separator should contain only single - ");
+		} else {
 			return FormValidation.ok();
 		}
+	}
+
+	private FormValidation validateIdentityFormatFields(List<String> identityFields) {
+		// Check for valid tokens
+		Set<String> identityTokenSet = new HashSet<>(Arrays.asList("aud", "jenkins_parent_full_name", "jenkins_name",
+				"userId", "fullName", "jenkins_full_name", "jenkins_parent_name"));
+
+		List<String> identityFieldsList = Arrays.asList("aud", "userId", "fullName", "jenkins_full_name");
+		List<String> commonFieldsList = Arrays.asList("jenkins_name", "jenkins_parent_full_name",
+				"jenkins_parent_name");
+
+		if (!identityFields.stream().allMatch(identityTokenSet::contains)) {
+			String errorMsg = "IdentityFormatFieldsFromToken should contain any combination of the following fields with no space : aud,jenkins_parent_full_name,jenkins_name,userId,fullName,jenkins_full_name,jenkins_parent_name";
+			LOGGER.log(Level.FINE, errorMsg);
+			return FormValidation.error(errorMsg);
+		}
+
+		for (String field : identityFieldsList) {
+			if (identityFields.contains(field) && !commonFieldsList.stream().anyMatch(identityFields::contains)) {
+				return handleValidationError("jenkins_name, jenkins_parent_full_name, or jenkins_parent_name");
+			}
+		}
+		// No validation errors
+		return FormValidation.ok();
 
 	}
 
-	/** @return the singleton instance , comment non-null due to trace exception */
+	private FormValidation handleValidationError(String tokens) {
+		LOGGER.log(Level.FINE, "IdentityFormatFieldsFromToken must contain at least one or more of " + tokens);
+		return FormValidation.error("IdentityFormatFieldsFromToken must contain at least one or more of " + tokens);
+	}
+
+	/**
+	 * @return the singleton instance , comment non-null due to trace exception
+	 */
 	// @Nonnull
 	public static GlobalConjurConfiguration get() {
 		GlobalConjurConfiguration result = null;
@@ -140,76 +209,102 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
 		load();
 	}
 
-	/** @return ConjurConfiguration object */
+	/**
+	 * @return ConjurConfiguration object
+	 */
 	public ConjurConfiguration getConjurConfiguration() {
 		return conjurConfiguration;
 	}
 
-	/** @return boolean if JWKS is enabled */
+	/**
+	 * @return boolean if JWKS is enabled
+	 */
 	public Boolean getEnableJWKS() {
 		return enableJWKS;
 	}
 
-	/** @return boolean for enableContextAware CredentialStore */
+	/**
+	 * @return boolean for enableContextAware CredentialStore
+	 */
 
 	public Boolean getEnableContextAwareCredentialStore() {
 		return enableContextAwareCredentialStore;
 	}
 
-	/** @return Web Service ID for authentication */
+	/**
+	 * @return Web Service ID for authentication
+	 */
 	public String getAuthWebServiceId() {
 		return authWebServiceId;
 	}
 
-	/** set the Authentication WebService Id */
+	/**
+	 * set the Authentication WebService Id
+	 */
 	@DataBoundSetter
 	public void setAuthWebServiceId(String authWebServiceId) {
 		this.authWebServiceId = authWebServiceId;
 		save();
 	}
 
-	/** @return the Identity FieldName */
+	/**
+	 * @return the Identity FieldName
+	 */
 	public String getidentityFieldName() {
 		return identityFieldName;
 	}
 
-	/** set the IdentityFieldName */
+	/**
+	 * set the IdentityFieldName
+	 */
 	@DataBoundSetter
 	public void setIdentityFieldName(String identityFieldName) {
 		this.identityFieldName = identityFieldName;
 		save();
 	}
 
-	/** @retrun IdentityFormatFieldsFromToken */
+	/**
+	 * @retrun IdentityFormatFieldsFromToken
+	 */
 	public String getIdentityFormatFieldsFromToken() {
 		return identityFormatFieldsFromToken;
 	}
 
-	/** set the IdentityFormatFieldsFromToken */
+	/**
+	 * set the IdentityFormatFieldsFromToken
+	 */
 	@DataBoundSetter
 	public void setIdentityFormatFieldsFromToken(String identityFormatFieldsFromToken) {
 		this.identityFormatFieldsFromToken = identityFormatFieldsFromToken;
 		save();
 	}
 
-	/** @return IdentityFieldsSeparator */
+	/**
+	 * @return IdentityFieldsSeparator
+	 */
 	public String getIdentityFieldsSeparator() {
 		return identityFieldsSeparator;
 	}
 
-	/** set the IdentityFieldsSeparator */
+	/**
+	 * set the IdentityFieldsSeparator
+	 */
 	@DataBoundSetter
 	public void setIdentityFieldsSeparator(String identityFieldsSeparator) {
 		this.identityFieldsSeparator = identityFieldsSeparator;
 		save();
 	}
 
-	/** @return the JWT Audience */
+	/**
+	 * @return the JWT Audience
+	 */
 	public String getJwtAudience() {
 		return jwtAudience;
 	}
 
-	/** set the JWT Audience */
+	/**
+	 * set the JWT Audience
+	 */
 
 	@DataBoundSetter
 	public void setJwtAudience(String jwtAudience) {
@@ -217,45 +312,59 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
 		save();
 	}
 
-	/** @return the Key Life Time in Minutes */
+	/**
+	 * @return the Key Life Time in Minutes
+	 */
 	public long getKeyLifetimeInMinutes() {
 		return keyLifetimeInMinutes;
 	}
 
-	/** set the Key Life Time in Minutes */
+	/**
+	 * set the Key Life Time in Minutes
+	 */
 	@DataBoundSetter
 	public void setKeyLifetimeInMinutes(long keyLifetimeInMinutes) {
 		this.keyLifetimeInMinutes = keyLifetimeInMinutes;
 		save();
 	}
 
-	/** @return the Token duration in seconds */
+	/**
+	 * @return the Token duration in seconds
+	 */
 	public long getTokenDurarionInSeconds() {
 		return tokenDurarionInSeconds;
 	}
 
-	/** set the Token duration in seconds */
+	/**
+	 * set the Token duration in seconds
+	 */
 	@DataBoundSetter
 	public void setTokenDurarionInSeconds(long tokenDurarionInSeconds) {
 		this.tokenDurarionInSeconds = tokenDurarionInSeconds;
 		save();
 	}
 
-	/** set the Conjur Configuration parameters */
+	/**
+	 * set the Conjur Configuration parameters
+	 */
 	@DataBoundSetter
 	public void setConjurConfiguration(ConjurConfiguration conjurConfiguration) {
 		this.conjurConfiguration = conjurConfiguration;
 		save();
 	}
 
-	/** set Enable JWKS option */
+	/**
+	 * set Enable JWKS option
+	 */
 	@DataBoundSetter
 	public void setEnableJWKS(Boolean enableJWKS) {
 		this.enableJWKS = enableJWKS;
 		save();
 	}
 
-	/** set the EnablContextAwareCredentialStore selected value */
+	/**
+	 * set the EnablContextAwareCredentialStore selected value
+	 */
 	@DataBoundSetter
 	public void setEnableContextAwareCredentialStore(Boolean enableContextAwareCredentialStore) {
 		this.enableContextAwareCredentialStore = enableContextAwareCredentialStore;

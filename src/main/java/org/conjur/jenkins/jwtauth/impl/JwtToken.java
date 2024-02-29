@@ -3,6 +3,7 @@ package org.conjur.jenkins.jwtauth.impl;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
@@ -15,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.acegisecurity.Authentication;
+import org.apache.commons.lang.StringUtils;
 import org.conjur.jenkins.configuration.GlobalConjurConfiguration;
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jws.JsonWebSignature;
@@ -197,26 +199,13 @@ public class JwtToken {
 			// Add identity field
 			List<String> identityFields = Arrays.asList(globalConfig.getIdentityFormatFieldsFromToken().split(","));
 			String fieldSeparator = globalConfig.getIdentityFieldsSeparator();
-			StringBuffer identityValue = new StringBuffer();
+			List<String> identityValues = new ArrayList<>(identityFields.size());
 			for (String identityField : identityFields) {
-				if (jwtToken.claim.has(identityField)) {
-					LOGGER.log(Level.FINE, "getUnsignedToken() *** Identity Field in CLAIM :" + identityField);
-					String fieldValue = jwtToken.claim.getString(identityField);
-					LOGGER.log(Level.FINE, "getUnsignedToken() *** Inside IF condition fieldValue :" + fieldValue);
-					if (identityValue.length() > 1) {
-						identityValue.append(fieldSeparator);
-						LOGGER.log(Level.FINE, "getUnsignedToken() *** fieldseparator :" + identityValue.toString());
-					}
-					identityValue.append(fieldValue);
-					LOGGER.log(Level.FINE, "getUnsignedToken() *** Adding fieldValue :" + identityValue.toString());
-				} else {
-					identityValue.append(fieldSeparator);
-				}
+				String identityFieldValue = jwtToken.claim.has(identityField) ? jwtToken.claim.getString(identityField) : "";
+				identityValues.add(identityFieldValue);
+				LOGGER.log(Level.FINE, "getUnsignedToken() *** found identity field:" + identityField + " and value:" + identityFieldValue);
 			}
-			if (identityValue.length() > 0)
-
-				jwtToken.claim.put(globalConfig.getidentityFieldName(), identityValue);
-
+			jwtToken.claim.put(globalConfig.getidentityFieldName(), StringUtils.join(identityValues, fieldSeparator));
 		}
 		LOGGER.log(Level.FINE, "End getUnsignedToken()");
 		return jwtToken;
