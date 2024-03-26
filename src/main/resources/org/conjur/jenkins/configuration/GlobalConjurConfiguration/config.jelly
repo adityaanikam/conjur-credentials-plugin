@@ -17,6 +17,8 @@
             <f:textbox field="authWebServiceId" name="authWebServiceId"/>
         </f:entry>
         <f:entry title="${%JWT Audience}">
+        <!-- Deprecation warning -->
+         <f:warning>Warning Deprecation: From Next Major version, this field will be deprecated and field is defualt to "cyberark-conjur".</f:warning>
             <f:textbox field="jwtAudience" name="jwtAudience"/>
         </f:entry>
         <f:entry title="${%Signing Key Lifetime In Minutes}">
@@ -28,14 +30,100 @@
         <f:entry title="${%Enable Context Aware Credential Stores?}" description="If checked, Conjur Credential Provider will populate stores with secret variables available from the current context">
             <f:checkbox name="enableContextAwareCredentialStore" field="enableContextAwareCredentialStore" default="false" checked="${enableContextAwareCredentialStore}"/>
         </f:entry>
+        <f:entry title="${%Enable Identity Format Fields From Token?}" description="If checked,populate variables available from the current context">
+            <f:checkbox id="enableIdentityFormatFieldsFromToken" name="enableIdentityFormatFieldsFromToken" field="enableIdentityFormatFieldsFromToken" default="false"/>
+        </f:entry>
+        <div id="divIdentityFieldName">
         <f:entry title="${%Identity Field Name}">
-            <f:textbox field="identityFieldName" name="identityFieldName" description="Name of the field to be added to JWT claim to possibly use it as identity"/>
+            <!-- Deprecation warning -->
+            <f:warning>Warning Deprecation: Identity field name will be removed from next major version.</f:warning>
+            <f:textbox id="identityFieldName" field="identityFieldName" name="identityFieldName" description="Name of the field to be added to JWT claim to possibly use it as identity"/>
         </f:entry>
+        </div>
+        <div id="listIdentityFormatFieldsFromToken" style="display: none;">
+      
+        <f:entry title="${%Identity Format Fields}" name="selectIdentityFormatToken">
+           <select id="listIdentityFormatFieldsFromToken" name="selectIdentityFormatToken" class="jenkins-select_input">
+                <option value="jenkins_name" selected="${param.selectIdentityFormatToken == 'jenkins_name' ? 'selected' : ''}">jenkins_name</option>
+                <option value="jenkins_full_name" selected="${param.selectIdentityFormatToken == 'jenkins_full_name' ? 'selected' : ''}">jenkins_full_name</option>
+                <option value="jenkins_parent_full_name" selected="${param.selectIdentityFormatToken == 'jenkins_parent_full_name' ? 'selected' : ''}">jenkins_parent_full_name</option>
+                <option value="jenkins_parent_name" selected="${param.selectIdentityFormatToken == 'jenkins_parent_name' ? 'selected' : ''}">jenkins_parent_name</option>
+                <option value="jenkins_parent_full_name,jenkins_name" selected="${param.selectIdentityFormatToken == 'jenkins_parent_full_name,jenkins_name' ? 'selected' : ''}">jenkins_parent_full_name,jenkins_name</option>
+           </select>
+        </f:entry>
+       
+        </div>
+        <div id="identityFormatFieldsFromToken">
         <f:entry title="${%Identity Format Fields}">
-            <f:textbox field="identityFormatFieldsFromToken" name="identityFormatFieldsFromToken" description="Comma separated fields from JWT Token to create identity field"/>
+            <f:textbox id ="identityFormatFieldsFromToken" field="identityFormatFieldsFromToken" name="identityFormatFieldsFromToken" description="Comma separated fields from JWT Token to create identity field"/>
         </f:entry>
+        </div>
+        <div id="listIdentityFieldsSeparator" style="display: none;">
+        <f:entry title="${%Identity Fields Separator}" name="selectIdentityFieldsSeparator">
+        <!-- Deprecation warning -->
+        <f:warning>Warning Deprecation: Identity field separator will be removed from next major version.</f:warning>
+        <select id="listIdentityFieldsSeparator" name="selectIdentityFieldsSeparator" class="jenkins-select_input">
+            <option value="-" selected="${param.selectIdentityFieldsSeparator == '-' ? 'selected' : ''}">-</option>
+            <option value="+" selected="${param.selectIdentityFieldsSeparator == '+' ? 'selected' : ''}">+</option>
+            <option value="." selected="${param.selectIdentityFieldsSeparator == '.' ? 'selected' : ''}">.</option>
+            <option value=":" selected="${param.selectIdentityFieldsSeparator == ':' ? 'selected' : ''}">:</option>
+            <option value="|" selected="${param.selectIdentityFieldsSeparator == '|' ? 'selected' : ''}">|</option>
+        </select>
+        </f:entry>
+        </div>
+        <div id="identityFieldsSeparator">
         <f:entry title="${%Identity Fields Separator}">
-            <f:textbox field="identityFieldsSeparator" name="identityFieldsSeparator" description="Separator to place between format fields for identity"/>
+            <f:textbox id="identityFieldsSeparator" field="identityFieldsSeparator" name="identityFieldsSeparator" description="Separator to place between format fields for identity"/>
         </f:entry>
+        </div>
     </f:section>
+
+  <script type="text/javascript">
+      // Function to set value based on checkbox state
+      document.getElementById('enableIdentityFormatFieldsFromToken').addEventListener('change', getIdentityFormatToken);
+
+      function getIdentityFormatToken() {
+          var inputEnableIdentityCheckedToken = document.getElementById('enableIdentityFormatFieldsFromToken');
+          var divTxtIdentityFieldName =document.getElementById('divIdentityFieldName');
+          var txtIdentityFieldName = document.getElementById('identityFieldName');
+          var selectedIdentityFormatFiledToken = document.getElementById("listIdentityFormatFieldsFromToken");
+          var inputIdentityToken = document.getElementById("identityFormatFieldsFromToken");
+          var selectedIdentityFieldsSeparator = document.getElementById("listIdentityFieldsSeparator");
+          var inputIdentityFieldsSeparator = document.getElementById("identityFieldsSeparator");
+          // If checkbox is checked, set default textbox value, otherwise clear its value
+          if (inputEnableIdentityCheckedToken.checked) {
+              divTxtIdentityFieldName.style.display = "none";
+              txtIdentityFieldName.style.display = "none";
+              selectedIdentityFormatFiledToken.style.display = "block";
+              inputIdentityToken.style.display = "none";
+              selectedIdentityFieldsSeparator.style.display = "none";
+              inputIdentityFieldsSeparator.style.display = "none";
+          } else {
+              divTxtIdentityFieldName.style.display = "block";
+              txtIdentityFieldName.style.display = "block";
+              selectedIdentityFormatFiledToken.style.display = "none";
+              inputIdentityToken.style.display = "block";
+              selectedIdentityFieldsSeparator.style.display = "block";
+              inputIdentityFieldsSeparator.style.display = "none";
+          }
+      }
+      // Call the function initially to set the initial state based on checkbox
+      getIdentityFormatToken();
+  </script>
+
+       <style type="text/css">
+           .jenkins-select_input {
+             color: black;
+             font-weight: normal;
+             border:2px solid var(--input-border);
+             border-radius:6px;
+             box-shadow:0 0 0 10px transparent;
+             display: block;
+             max-width: 100% !important;
+             min-height: 38px;
+             padding: 8px;
+             transition: var(--standard-transition);
+             width: 100% !important;
+           }
+   </style>
 </j:jelly>
