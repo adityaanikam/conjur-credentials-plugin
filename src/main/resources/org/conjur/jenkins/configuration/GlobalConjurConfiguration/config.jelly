@@ -72,7 +72,6 @@
          </select>
        </f:entry>
         </div>
-
          <div class="warning" style="margin-top: -1.25rem;opacity: 1;" id="dviWarningSeperator">Identity field separator will be removed from next major version. </div>
         <div id="identityFieldsSeparator">
         <f:entry title="${%Identity Fields Separator}">

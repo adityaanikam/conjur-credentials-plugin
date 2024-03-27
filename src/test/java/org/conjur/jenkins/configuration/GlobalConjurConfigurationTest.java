@@ -5,6 +5,8 @@ import static org.mockito.Mockito.mockStatic;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.kohsuke.stapler.AncestorInPath;
+import org.kohsuke.stapler.QueryParameter;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -129,6 +131,46 @@ public class GlobalConjurConfigurationTest {
 					.thenReturn(FormValidation.error(errorMsg));
 
 			String actualErrorMessage = config.doCheckJwtAudience(abstractItem, jwtAudience).getMessage();
+			// Assert the result after removing the prefix "ERROR: "
+			assertEquals(errorMsg, actualErrorMessage.replace("ERROR: ", ""));
+		}
+	}
+	@Test
+	public void doCheckIdentityFieldName() {
+		try (MockedStatic<GlobalConjurConfiguration> getConfigMockStatic = mockStatic(
+				GlobalConjurConfiguration.class)) {
+			String identityFieldName = "sub";
+			getConfigMockStatic.when(() -> config.doCheckIdentityFieldName(abstractItem, identityFieldName))
+					.thenReturn(FormValidation.ok());
+			// Assert the result
+			assertEquals(FormValidation.ok(), config.doCheckIdentityFieldName(abstractItem, identityFieldName));
+		}
+	}
+	@Test
+	public void doCheckIdentityFieldNameEmpty() {
+		try (MockedStatic<GlobalConjurConfiguration> getConfigMockStatic = mockStatic(
+				GlobalConjurConfiguration.class)) {
+			String identityFieldName = "";
+			String errorMsg = "Identity Field Name should not be empty";
+			getConfigMockStatic.when(() -> config.doCheckIdentityFieldName(abstractItem, identityFieldName))
+					.thenReturn(FormValidation.error(errorMsg));
+
+			String actualErrorMessage = config.doCheckIdentityFieldName(abstractItem, identityFieldName).getMessage();
+			// Assert the result after removing the prefix "ERROR: "
+			assertEquals(errorMsg, actualErrorMessage.replace("ERROR: ", ""));
+		}
+	}
+
+	@Test
+	public void doCheckIdentityFieldNameNonNumeric() {
+		try (MockedStatic<GlobalConjurConfiguration> getConfigMockStatic = mockStatic(
+				GlobalConjurConfiguration.class)) {
+			String identityFieldName = "test!@#";
+			String errorMsg = "Identity Field Name should contain only alphanumeric characters";
+			getConfigMockStatic.when(() -> config.doCheckIdentityFieldName(abstractItem, identityFieldName))
+					.thenReturn(FormValidation.error(errorMsg));
+
+			String actualErrorMessage = config.doCheckIdentityFieldName(abstractItem, identityFieldName).getMessage();
 			// Assert the result after removing the prefix "ERROR: "
 			assertEquals(errorMsg, actualErrorMessage.replace("ERROR: ", ""));
 		}
