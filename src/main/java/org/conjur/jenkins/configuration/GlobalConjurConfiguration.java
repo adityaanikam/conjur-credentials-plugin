@@ -35,10 +35,11 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
     private Boolean enableContextAwareCredentialStore = false;
 
     private Boolean enableIdentityFormatFieldsFromToken = false;
+
     private String identityFormatFieldsFromToken = "jenkins_name";
 
-    private String selectIdentityFormatToken = "jenkins_name";
-    private String identityFieldsSeparator = "-";
+    private  String  selectIdentityFormatToken = "jenkins_name";
+ //   private String identityFieldsSeparator = "-";
 
     private String selectIdentityFieldsSeparator = "-";
     private String identityFieldName = "sub";
@@ -160,7 +161,7 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
      * @param JWT     IdentityFieldsSeparator
      * @return
      */
-    public FormValidation doCheckIdentityFieldsSeparator(@AncestorInPath AbstractItem anc,
+   /* public FormValidation doCheckIdentityFieldsSeparator(@AncestorInPath AbstractItem anc,
                                                          @QueryParameter("identityFieldsSeparator") String identityFieldsSeparators) {
         LOGGER.log(Level.FINE, "Inside of doCheckIdentityFieldsSeparator()");
 
@@ -174,7 +175,7 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
         } else {
             return FormValidation.ok();
         }
-    }
+    }*/
 
     private FormValidation validateIdentityFormatFields(List<String> identityFields) {
         // Check for valid tokens
@@ -308,21 +309,22 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
         save();
     }
 
+
     /**
      * @return IdentityFieldsSeparator
      */
-    public String getIdentityFieldsSeparator() {
+   /* public String getIdentityFieldsSeparator() {
         return identityFieldsSeparator;
-    }
+    }*/
 
     /**
      * set the IdentityFieldsSeparator
      */
-    @DataBoundSetter
+   /* @DataBoundSetter
     public void setIdentityFieldsSeparator(String identityFieldsSeparator) {
         this.identityFieldsSeparator = identityFieldsSeparator;
         save();
-    }
+    }*/
 
     /**
      * @return the JWT Audience
@@ -412,24 +414,23 @@ public class GlobalConjurConfiguration extends GlobalConfiguration implements Se
     }
 
     public String getSelectIdentityFormatToken() {
-        return getIdentityFormatFieldsFromToken();
+        return selectIdentityFormatToken;
     }
 
     @DataBoundSetter
     public void setSelectIdentityFormatToken(String selectIdentityFormatToken) {
         LOGGER.log(Level.FINE, "GlobalConjurConfiguration get() #selectIdentityFormatToken " + selectIdentityFormatToken);
         this.selectIdentityFormatToken = selectIdentityFormatToken;
-        //save();
-        setIdentityFormatFieldsFromToken(this.selectIdentityFormatToken);
+        save();
     }
+
     public String getSelectIdentityFieldsSeparator() {
-        return getIdentityFieldsSeparator();
+        return selectIdentityFieldsSeparator;
     }
 
     @DataBoundSetter
     public void setSelectIdentityFieldsSeparator(String selectIdentityFieldsSeparator) {
         this.selectIdentityFieldsSeparator = selectIdentityFieldsSeparator;
-        //save();
-        setIdentityFieldsSeparator(this.selectIdentityFieldsSeparator );
+        save();
     }
 }

@@ -262,8 +262,8 @@ public class GlobalConjurConfigurationTest {
 		}
 	}
 
-	@Test
-	public void doCheckIdentityFieldsSeparatorNotEmpty() {
+	//@Test
+	/*public void doCheckIdentityFieldsSeparatorNotEmpty() {
 		try (MockedStatic<GlobalConjurConfiguration> getConfigMockStatic = mockStatic(
 				GlobalConjurConfiguration.class)) {
 			String identityFieldsSeparator = "-";
@@ -273,10 +273,10 @@ public class GlobalConjurConfigurationTest {
 			assertEquals(FormValidation.ok(),
 					config.doCheckIdentityFieldsSeparator(abstractItem, identityFieldsSeparator));
 		}
-	}
+	}*/
 
-	@Test
-	public void doCheckIdentityFieldsSeparatorEmpty() {
+	//@Test
+	/*public void doCheckIdentityFieldsSeparatorEmpty() {
 		try (MockedStatic<GlobalConjurConfiguration> getConfigMockStatic = mockStatic(
 				GlobalConjurConfiguration.class)) {
 			String identityFieldsSeparator = "";
@@ -289,6 +289,6 @@ public class GlobalConjurConfigurationTest {
 			// Assert the result after removing the prefix "ERROR: "
 			assertEquals(errorMsg, actualErrorMessage.replace("ERROR: ", ""));
 		}
-	}
+	}*/
 
 }
