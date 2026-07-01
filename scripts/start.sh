@@ -205,6 +205,11 @@ function render_disco_xml() {
   local disco_export_interval_hours="${DISCO_EXPORT_INTERVAL_HOURS:-12}"
   local disco_export_secret_values="${DISCO_EXPORT_SECRET_VALUES:-true}"
 
+  if [[ -z "$disco_subdomain" ]]; then
+    echo "[ERROR] DISCO_SUBDOMAIN is required for DisCo E2E startup. Provide it via environment variables or Summon."
+    exit 1
+  fi
+
   sed -e "s|{{DISCO_SUBDOMAIN}}|$(escape_sed_replacement "$disco_subdomain")|g" \
     -e "s|{{DISCO_AUTH_MODE}}|$(escape_sed_replacement "$disco_auth_mode")|g" \
     -e "s|{{DISCO_CREDENTIAL_ID}}|$(escape_sed_replacement "$disco_credential_id")|g" \
@@ -216,6 +221,10 @@ function render_disco_xml() {
 
   local disco_username="${DISCO_USERNAME:-}"
   local disco_password="${DISCO_PASSWORD:-}"
+  if [[ -z "$disco_username" || -z "$disco_password" ]]; then
+    echo "[ERROR] DISCO_USERNAME and DISCO_PASSWORD are required for DisCo E2E startup. Provide them via environment variables or Summon."
+    exit 1
+  fi
   local disco_global_secret_credential_id="${DISCO_GLOBAL_SECRET_CREDENTIAL_ID:-disco-global-secret-$(openssl rand -hex 4)}"
   local disco_system_secret_credential_id="${DISCO_SYSTEM_SECRET_CREDENTIAL_ID:-disco-system-secret-$(openssl rand -hex 4)}"
   local disco_global_secret="${DISCO_GLOBAL_SECRET:-$(openssl rand -hex 16)}"
