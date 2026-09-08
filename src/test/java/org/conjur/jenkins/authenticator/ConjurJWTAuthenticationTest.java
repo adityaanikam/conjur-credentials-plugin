@@ -12,6 +12,7 @@ import org.conjur.jenkins.api.ConjurAPIUtils;
 import org.conjur.jenkins.api.ConjurAuthnInfo;
 import org.conjur.jenkins.configuration.GlobalConjurConfiguration;
 import org.conjur.jenkins.exceptions.AuthenticationConjurException;
+import org.conjur.jenkins.exceptions.JwtException;
 import org.conjur.jenkins.jwtauth.impl.JwtToken;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -176,6 +177,27 @@ class ConjurJWTAuthenticatorTest {
             assertNotNull(conjurAuthn.getApiKey());
             String apiKeyString = new String(conjurAuthn.getApiKey(), StandardCharsets.US_ASCII);
             assertTrue(apiKeyString.startsWith("jwt="));
+        }
+    }
+
+    // issue #48: on a build executor thread the context resolution can end up null, and
+    // JwtToken.getToken() returns null for a null context - fillAuthnInfo must fail clearly
+    // instead of NPEing on jwtToken.getBytes().
+    @Test
+    void testFillAuthnInfoThrowsJwtExceptionWhenTokenIsNull() {
+        GlobalConjurConfiguration conjurConfig = mock(GlobalConjurConfiguration.class);
+        ExtensionList<GlobalConfiguration> extensionList = mock(ExtensionList.class);
+
+        try (MockedStatic<GlobalConfiguration> globalConfigStatic = mockStatic(GlobalConfiguration.class);
+             MockedStatic<JwtToken> jwtTokenMockedStatic = mockStatic(JwtToken.class)) {
+
+            globalConfigStatic.when(GlobalConfiguration::all).thenReturn(extensionList);
+            when(extensionList.get(GlobalConjurConfiguration.class)).thenReturn(conjurConfig);
+
+            jwtTokenMockedStatic.when(() -> JwtToken.getToken(mockContext, conjurConfig))
+                    .thenReturn(null);
+
+            assertThrows(JwtException.class, () -> authenticator.fillAuthnInfo(conjurAuthn, mockContext));
         }
     }
 }

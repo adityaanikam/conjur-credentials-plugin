@@ -8,6 +8,7 @@ import org.conjur.jenkins.api.ConjurAuthnInfo;
 import org.conjur.jenkins.configuration.GlobalConjurConfiguration;
 import org.conjur.jenkins.CjplCode;
 import org.conjur.jenkins.exceptions.AuthenticationConjurException;
+import org.conjur.jenkins.exceptions.JwtException;
 import org.conjur.jenkins.jwtauth.impl.JwtToken;
 
 import java.io.IOException;
@@ -94,6 +95,12 @@ public class ConjurJWTAuthenticator extends AbstractAuthenticator {
         GlobalConjurConfiguration globalConfig = GlobalConfiguration.all().get(GlobalConjurConfiguration.class);
 
         String jwtToken = JwtToken.getToken(context, globalConfig);
+
+        // JwtToken.getToken() returns null on a null context (e.g. issue #48); fail with a clear,
+        // actionable error here instead of an NPE a few lines down.
+        if (jwtToken == null) {
+            throw new JwtException(JWT_NULL_CONTEXT.format(), null);
+        }
 
         conjurAuthn.setLogin(null);
         if (globalConfig != null) {
